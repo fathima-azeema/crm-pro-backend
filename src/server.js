@@ -15,7 +15,13 @@ import calendarRoutes from './routes/calendarRoutes.js';  // <-- must be present
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:3000",
+    "https://your-vercel-app.vercel.app"   // you'll replace this with your actual Vercel URL later
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
