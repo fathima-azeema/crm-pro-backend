@@ -5,16 +5,29 @@ dotenv.config();
 
 import authRoutes from './routes/authRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
+import leadRoutes from './routes/leadRoutes.js';
+import reportRoutes from './routes/reportRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import employeeRoutes from './routes/employeeRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import calendarRoutes from './routes/calendarRoutes.js';  // <-- must be present
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/employees', employeeRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/calendar', calendarRoutes);  // <-- must be present
 
-// Health check
 app.get('/', (req, res) => {
   res.json({ message: 'CRM Pro API is running' });
 });

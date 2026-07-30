@@ -16,29 +16,19 @@ export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // Check if user exists
     const existing = await db('users').where({ email }).first();
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Insert user
     const [newUser] = await db('users')
-      .insert({
-        name,
-        email,
-        password: hashedPassword,
-        role: role || 'sales_executive',
-      })
+      .insert({ name, email, password: hashedPassword, role: role || 'sales_executive' })
       .returning(['id', 'name', 'email', 'role', 'created_at']);
 
-    // Generate token
     const token = generateToken(newUser);
-
     res.status(201).json({ user: newUser, token });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -49,23 +39,17 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Find user
     const user = await db('users').where({ email }).first();
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // Generate token
     const token = generateToken(user);
-
-    // Return user without password
     const { password: _, ...userWithoutPassword } = user;
     res.json({ user: userWithoutPassword, token });
   } catch (error) {
@@ -80,9 +64,57 @@ export const getMe = async (req, res) => {
       .where({ id: req.user.id })
       .select('id', 'name', 'email', 'role', 'created_at')
       .first();
-
     res.json({ user });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// PUT /api/auth/update-profile (NEW)
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const userId = req.user.id;
+
+    if (email) {
+      const existing = await db('users')
+        .where({ email })
+        .whereNot({ id: userId })
+        .first();
+      if (existing) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+    }
+
+    const [updatedUser] = await db('users')
+      .where({ id: userId })
+      .update({ name, email })
+      .returning(['id', 'name', 'email', 'role']);
+
+    res.json({ user: updatedUser });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// PUT /api/auth/change-password (NEW)
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const userId = req.user.id;
+
+    const user = await db('users').where({ id: userId }).first();
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(newPassword, salt);
+
+    await db('users').where({ id: userId }).update({ password: hashed });
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
