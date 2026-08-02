@@ -18,12 +18,10 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://your-vercel-app.vercel.app"   // you'll replace this with your actual Vercel URL later
+    "https://YOUR_VERCEL_URL.vercel.app"   // ← paste your exact Vercel domain here
   ],
   credentials: true
 }));
-app.use(express.json());
-
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/leads', leadRoutes);
