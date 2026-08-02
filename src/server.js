@@ -11,17 +11,23 @@ import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import employeeRoutes from './routes/employeeRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
-import calendarRoutes from './routes/calendarRoutes.js';  // <-- must be present
+import calendarRoutes from './routes/calendarRoutes.js';
 
 const app = express();
 
+// CORS – replace the placeholder with your actual Vercel URL later
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://YOUR_VERCEL_URL.vercel.app"   // ← paste your exact Vercel domain here
+    "https://crm-pro-frontend.vercel.app"   // ← update this to your exact Vercel domain
   ],
   credentials: true
 }));
+
+// CRITICAL: This line was missing and caused req.body to be undefined
+app.use(express.json());
+
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/leads', leadRoutes);
@@ -30,7 +36,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/settings', settingsRoutes);
-app.use('/api/calendar', calendarRoutes);  // <-- must be present
+app.use('/api/calendar', calendarRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'CRM Pro API is running' });
